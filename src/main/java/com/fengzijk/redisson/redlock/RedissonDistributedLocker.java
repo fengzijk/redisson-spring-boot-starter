@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * -------------------------------------------------
+ *
  * @Descprition : redLock 实现类
  * @Author : fengzijk
  * @email: guozhifengvip@163.com
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class RedissonDistributedLocker implements DistributedLocker {
     private RedissonClient redissonClient;
+
     @Override
     public RLock lock(String lockKey) {
         RLock lock = redissonClient.getLock(lockKey);
@@ -47,7 +49,7 @@ public class RedissonDistributedLocker implements DistributedLocker {
     }
 
     @Override
-    public RLock lock(String lockKey, TimeUnit unit ,int timeout) {
+    public RLock lock(String lockKey, TimeUnit unit, int timeout) {
         RLock lock = redissonClient.getLock(lockKey);
         lock.lock(timeout, unit);
         return lock;
@@ -66,13 +68,17 @@ public class RedissonDistributedLocker implements DistributedLocker {
     @Override
     public void unlock(String lockKey) {
         RLock lock = redissonClient.getLock(lockKey);
-        lock.unlock();
+        if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+            lock.unlock();
+        }
     }
 
 
     @Override
     public void unlock(RLock lock) {
-        lock.unlock();
+        if (lock.isLocked() && lock.isHeldByCurrentThread()) {
+            lock.unlock();
+        }
     }
 
     public void setRedissonClient(RedissonClient redissonClient) {
